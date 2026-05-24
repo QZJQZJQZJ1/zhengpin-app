@@ -32,6 +32,7 @@ export default async function handler(req, res) {
 
         // 2. 在数据库中查找该码，并同时执行更新操作 (浏览次数+1，记录时间IP)
         // returnDocument: 'before' 会返回更新前的数据，方便我们判断是不是“首次查询”
+// 2. 在数据库中查找该码，并同时执行更新操作
         const codeRecord = await collection.findOneAndUpdate(
             { code: FWCode },
             {
@@ -40,6 +41,22 @@ export default async function handler(req, res) {
             },
             { returnDocument: 'before' }
         );
+
+        // 【关键修复】兼容最新版 MongoDB 驱动直接返回文档的特性
+        const doc = (codeRecord && codeRecord.value !== undefined) ? codeRecord.value : codeRecord;
+
+        // 3. 查无此码 (假货)
+        if (!doc) {
+            return res.json({
+                response: null,
+                status: 200,
+                success: true,
+                msg: "抱歉，您查询的防伪码不存在，谨防假冒！如有疑问请与厂家联系"
+            });
+        }
+
+        // 4. 判定防伪码状态 (把原来的 codeRecord.value 改成 doc)
+        const isFirstTime = doc.queryCount === 0;
 
         // 3. 查无此码 (假货)
         if (!codeRecord.value) {
@@ -52,8 +69,6 @@ export default async function handler(req, res) {
         }
 
         // 4. 判定防伪码状态
-        const doc = codeRecord.value;
-        const isFirstTime = doc.queryCount === 0;
         const currentCount = doc.queryCount + 1; // 加上本次查询
 
         let resultStatus, msg, contentHtml;

@@ -1200,55 +1200,58 @@
          });
       </script>
       <script>
-         document.addEventListener('DOMContentLoaded', async () => {
-            // 1. 获取 URL 中的防伪码参数
-            const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
-            const fwCode = urlParams.get('FWCode');
+         document.addEventListener('DOMContentLoaded', () => {
+            // 设置一点点延迟，防止 Vue 框架初始化时把我们的修改覆盖掉
+            setTimeout(async () => {
+               // 1. 获取 URL 中的防伪码参数
+               const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
+               const fwCode = urlParams.get('FWCode');
 
-            if (!fwCode) return; // 如果没有传码，就不做处理
+               if (!fwCode) return;
 
-            // 2. 找到要替换内容的 DOM 节点
-            // .textspm 是你原 HTML 里包裹文字的 div， .mainover 是上面的大图标
-            const contentBox = document.querySelector('.textspm');
-            const iconImg = document.querySelector('.mainover.content__icon img');
-
-            if (!contentBox) return;
-
-            // 设置加载状态
-            contentBox.innerHTML = "<div style='text-align:center; padding: 40px; color:#999;'>正在向云端数据库核对防伪信息，请稍候...</div>";
-
-            try {
-               // 3. 请求咱们刚写的 Vercel 后端接口
-               // 注意：本地测试时如果是 http://localhost:3000，这里可以直接写 /api/verify
-               const response = await fetch(`/api/verify?FWCode=${fwCode}`);
-               const data = await response.json();
-
-               // 4. 解析数据并渲染到页面
-               if (data.response && data.response.FwCheckReplayInfoList) {
-                  const info = data.response.FwCheckReplayInfoList[0];
-                  const status = data.response.FWResultStatus;
-
-                  // 渲染文字内容
-                  contentBox.innerHTML = info.Content || info.WarnContent;
-
-                  // 动态替换顶部图标
-                  if (iconImg) {
-                     if (status === 3) {
-                        // 异常警告图标
-                        iconImg.src = 'https://img4.winmobi.cn/5.0/images/200163/1/2025-3/2025032016154634776.png';
-                     } else {
-                        // 正常打钩图标
-                        iconImg.src = 'https://img4.winmobi.cn/5.0/images/200163/1/2025-3/2025032016153918709.png';
-                     }
+               // 【关键修复】动态替换页面上硬编码的旧防伪码文字
+               const allSpans = document.querySelectorAll('span');
+               allSpans.forEach(span => {
+                  if (span.innerText.includes('產品身份編碼：') || span.innerText.includes('1U16 K4YQ 610B E8KN')) {
+                     span.innerText = `產品身份編碼：${fwCode}`;
                   }
-               } else {
-                  // 查无此码 (报错状态)
-                  contentBox.innerHTML = `<div style='text-align:center; padding: 20px;'><h2 style='color:#f5222d; font-size: 22px; font-weight: bold;'>查询失败</h2><p style='margin-top: 10px; color: #666; font-size: 14px;'>${data.msg}</p></div>`;
-                  if (iconImg) iconImg.src = 'https://img4.winmobi.cn/5.0/images/200163/1/2025-3/2025032016154634776.png';
+               });
+
+               // 2. 找到要替换内容的 DOM 节点
+               const contentBox = document.querySelector('.textspm');
+               const iconImg = document.querySelector('.mainover.content__icon img');
+
+               if (!contentBox) return;
+
+               contentBox.innerHTML = "<div style='text-align:center; padding: 40px; color:#999;'>正在向云端数据库核对防伪信息，请稍候...</div>";
+
+               try {
+                  // 3. 请求 Vercel 后端接口
+                  const response = await fetch(`/api/verify?FWCode=${fwCode}`);
+                  const data = await response.json();
+
+                  // 4. 解析数据并渲染到页面
+                  if (data.response && data.response.FwCheckReplayInfoList) {
+                     const info = data.response.FwCheckReplayInfoList[0];
+                     const status = data.response.FWResultStatus;
+
+                     contentBox.innerHTML = info.Content || info.WarnContent;
+
+                     if (iconImg) {
+                        if (status === 3) {
+                           iconImg.src = 'https://img4.winmobi.cn/5.0/images/200163/1/2025-3/2025032016154634776.png';
+                        } else {
+                           iconImg.src = 'https://img4.winmobi.cn/5.0/images/200163/1/2025-3/2025032016153918709.png';
+                        }
+                     }
+                  } else {
+                     contentBox.innerHTML = `<div style='text-align:center; padding: 20px;'><h2 style='color:#f5222d; font-size: 22px; font-weight: bold;'>查询失败</h2><p style='margin-top: 10px; color: #666; font-size: 14px;'>${data.msg}</p></div>`;
+                     if (iconImg) iconImg.src = 'https://img4.winmobi.cn/5.0/images/200163/1/2025-3/2025032016154634776.png';
+                  }
+               } catch (error) {
+                  contentBox.innerHTML = "<div style='text-align:center; padding: 20px; color:#f5222d;'>网络或服务器错误，请稍后再试</div>";
                }
-            } catch (error) {
-               contentBox.innerHTML = "<div style='text-align:center; padding: 20px; color:#f5222d;'>网络或服务器错误，请稍后再试</div>";
-            }
+            }, 300); // 延迟300毫秒执行
          });
       </script>
    </body>
