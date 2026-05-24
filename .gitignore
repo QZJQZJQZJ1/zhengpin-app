@@ -1,0 +1,10 @@
+node_modules/
+.env
+.DS_Store
+init_codes.js
+codes_backup.json
+codes_10_test_data.json
+codes_10_test_list.txt
+codes_16_standard_data.json
+codes_16_standard_list.txt
+seed.js
