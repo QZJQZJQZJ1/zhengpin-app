@@ -64,7 +64,7 @@ export default async function handler(req, res) {
             // 首次查询：完美正品
             resultStatus = 1;
             msg = "验证成功";
-            contentHtml = `<div style='text-align:center; padding: 20px;'><h2 style='color:#52c41a; font-size: 22px; font-weight: bold;'>正品验证通过</h2><p style='margin-top: 10px; color: #666; font-size: 14px;'>感谢您的查询，该防伪码为官方正品。<br/><span style='color:#52c41a;'>这是首次查询！</span></p></div>`;
+
 
             // 异步记录首次查询时间
             collection.updateOne({ code: FWCode }, { $set: { firstQueryTime: new Date() } });
@@ -77,8 +77,8 @@ export default async function handler(req, res) {
             const firstTime = doc.firstQueryTime || (doc.queryHistory && doc.queryHistory[0] ? doc.queryHistory[0].time : new Date());
             const formatTime = new Date(firstTime).toLocaleString('zh-CN');
 
-            contentHtml = `<div style='text-align:center; padding: 20px;'><h2 style='color:#fa8c16; font-size: 22px; font-weight: bold;'>正品验证通过</h2><p style='margin-top: 10px; color: #666; font-size: 14px;'>该防伪码为官方正品。</p><p style='color: #fa8c16; font-size: 13px; margin-top:5px;'>注意：此码已被查询过 ${currentCount} 次。<br/>首次查询时间: ${formatTime}</p></div>`;
         }
+        contentHtml = `<div style='text-align:center; padding: 20px;'><p style='margin-top: 10px; color: #666; font-size: 14px;'>感谢您的查询，该防伪码为官方正品。<br/></p></div>`;
 
         // 5. 返回前端 Vue 需要的数据结构
         res.json({
