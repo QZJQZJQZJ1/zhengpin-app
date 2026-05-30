@@ -65,7 +65,6 @@ export default async function handler(req, res) {
             resultStatus = 1;
             msg = "验证成功";
 
-
             // 异步记录首次查询时间
             collection.updateOne({ code: FWCode }, { $set: { firstQueryTime: new Date() } });
 
@@ -75,10 +74,9 @@ export default async function handler(req, res) {
             msg = "验证成功";
             // 提取首次查询时间
             const firstTime = doc.firstQueryTime || (doc.queryHistory && doc.queryHistory[0] ? doc.queryHistory[0].time : new Date());
-            const formatTime = new Date(firstTime).toLocaleString('zh-CN');
 
         }
-        contentHtml = `<div style='text-align:center; padding: 20px;'><p style='margin-top: 10px; color: #666; font-size: 14px;'>感谢您的查询，该防伪码为官方正品。<br/></p></div>`;
+        contentHtml = `<div style='text-align:center; padding: 20px;'><h2 style='color:#52c41a; font-size: 22px; font-weight: bold;'>正品验证通过</h2><p style='margin-top: 10px; color: #666; font-size: 14px;'>感谢您的查询，该防伪码为官方正品。</p></div>`;
 
         // 5. 返回前端 Vue 需要的数据结构
         res.json({
