@@ -1209,11 +1209,14 @@
 
                if (!fwCode) return;
 
-               // 【关键修复】动态替换页面上硬编码的旧防伪码文字
+               // 【格式化防伪码】：每4个字符加一个空格
+               const formattedCode = fwCode.match(/.{1,4}/g).join(' ');
+
+               // 动态替换页面上硬编码的旧防伪码文字
                const allSpans = document.querySelectorAll('span');
                allSpans.forEach(span => {
                   if (span.innerText.includes('產品身份編碼：') || span.innerText.includes('1U16 K4YQ 610B E8KN')) {
-                     span.innerText = `產品身份編碼：${fwCode}`;
+                     span.innerText = `產品身份編碼：${formattedCode}`;
                   }
                });
 
@@ -1251,7 +1254,7 @@
                } catch (error) {
                   contentBox.innerHTML = "<div style='text-align:center; padding: 20px; color:#f5222d;'>网络或服务器错误，请稍后再试</div>";
                }
-            }, 300); // 延迟300毫秒执行
+            }, 300);
          });
       </script>
    </body>
