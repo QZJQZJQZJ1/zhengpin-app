@@ -11,6 +11,12 @@ async function connectToDatabase() {
     return client;
 }
 
+function formatBJTime(dateObj) {
+    if (!dateObj) return '未知时间';
+    const bjTime = new Date(new Date(dateObj).getTime() + 8 * 60 * 60 * 1000);
+    return bjTime.toISOString().replace('T', ' ').substring(0, 19);
+}
+
 export default async function handler(req, res) {
     // 允许跨域请求 (CORS)
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -58,6 +64,15 @@ export default async function handler(req, res) {
         const isFirstTime = doc.queryCount === 0;
         const currentCount = doc.queryCount + 1; // 加上本次查询
 
+        let historyChecklists = [];
+        historyChecklists.push({ time: formatBJTime(new Date()) });
+        if (doc.queryHistory && doc.queryHistory.length > 0) {
+            const prevHistory = doc.queryHistory.map(record => {
+                return { time: formatBJTime(record.time) };
+            }).reverse();
+            historyChecklists = historyChecklists.concat(prevHistory);
+        }
+
         let resultStatus, msg, contentHtml;
 
         if (isFirstTime) {
@@ -93,7 +108,7 @@ export default async function handler(req, res) {
                         OtherContent: ""
                     }
                 ],
-                checklists: [{ time: new Date().toLocaleString('zh-CN') }],
+                checklists: historyChecklists,
                 fid: FWCode
             },
             status: 200,

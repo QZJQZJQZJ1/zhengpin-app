@@ -1201,7 +1201,6 @@
       </script>
       <script>
          document.addEventListener('DOMContentLoaded', () => {
-            // 设置一点点延迟，防止 Vue 框架初始化时把我们的修改覆盖掉
             setTimeout(async () => {
                // 1. 获取 URL 中的防伪码参数
                const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
@@ -1224,6 +1223,10 @@
                const contentBox = document.querySelector('.textspm');
                const iconImg = document.querySelector('.mainover.content__icon img');
 
+               // 获取查询历史记录的包裹层
+               const historyItemNode = document.querySelector('.codesp20');
+               const historyContainer = historyItemNode ? historyItemNode.parentElement : null;
+
                if (!contentBox) return;
 
                contentBox.innerHTML = "<div style='text-align:center; padding: 40px; color:#999;'>正在向云端数据库核对防伪信息，请稍候...</div>";
@@ -1238,8 +1241,8 @@
                      const info = data.response.FwCheckReplayInfoList[0];
                      const status = data.response.FWResultStatus;
 
+                     // 渲染验证结果文字和图标
                      contentBox.innerHTML = info.Content || info.WarnContent;
-
                      if (iconImg) {
                         if (status === 3) {
                            iconImg.src = 'https://img4.winmobi.cn/5.0/images/200163/1/2025-3/2025032016154634776.png';
@@ -1247,6 +1250,39 @@
                            iconImg.src = 'https://img4.winmobi.cn/5.0/images/200163/1/2025-3/2025032016153918709.png';
                         }
                      }
+
+                     // 【新增】渲染查询历史列表（用户名写死，时间从数据库取）
+                     if (historyContainer && data.response.checklists) {
+                        let historyHtml = '';
+                        data.response.checklists.forEach(item => {
+                           historyHtml += `
+                           <uni-view data-v-0429f1f2="" class="smll-no list-item codesp20" style="border-color: rgb(232, 232, 232); border-bottom-style: solid;">
+                              <uni-view data-v-0429f1f2="" class="margin-right-sm cell-1 item__text" style="text-align: left; color: rgb(0, 0, 0); font-size: 14px; font-weight: 400; font-style: inherit; text-decoration: none;">
+                                 <uni-view data-v-0429f1f2="" class="Textnames">匿名用户</uni-view>
+                                 <uni-view data-v-0429f1f2="" class="e-mt7">
+                                    <uni-view data-v-0429f1f2="" style="display: inline-block;">
+                                       <uni-image data-v-0429f1f2="" class="img22">
+                                          <div style="background-image: url('http://img2.onlyid.cn/zp_admin_images/fitment/code6.png'); background-position: 0% 0%; background-size: 100% 100%; background-repeat: no-repeat;"></div>
+                                          <img src="http://img2.onlyid.cn/zp_admin_images/fitment/code6.png" draggable="true">
+                                       </uni-image>
+                                    </uni-view>
+                                    <uni-view data-v-0429f1f2="" class="contescolor" style="display: inline-block;">${item.time}</uni-view>
+                                 </uni-view>
+                              </uni-view>
+                              <uni-view data-v-0429f1f2="" class="cell-hd">
+                                 <uni-view data-v-0429f1f2="">
+                                    <uni-image data-v-0429f1f2="" class="img64">
+                                       <div style="background-image: url('http://img2.onlyid.cn/zp_admin_images/fitment/code3.png'); background-position: 0% 0%; background-size: 100% 100%; background-repeat: no-repeat;"></div>
+                                       <img src="http://img2.onlyid.cn/zp_admin_images/fitment/code3.png" draggable="true">
+                                    </uni-image>
+                                 </uni-view>
+                              </uni-view>
+                           </uni-view>`;
+                        });
+                        // 覆盖历史记录区域 HTML
+                        historyContainer.innerHTML = historyHtml;
+                     }
+
                   } else {
                      contentBox.innerHTML = `<div style='text-align:center; padding: 20px;'><h2 style='color:#f5222d; font-size: 22px; font-weight: bold;'>查询失败</h2><p style='margin-top: 10px; color: #666; font-size: 14px;'>${data.msg}</p></div>`;
                      if (iconImg) iconImg.src = 'https://img4.winmobi.cn/5.0/images/200163/1/2025-3/2025032016154634776.png';
